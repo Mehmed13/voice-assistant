@@ -1,0 +1,4 @@
+aiohttp==3.9.5
+numpy==2.1.2
+python-dotenv==1.0.1
+livekit==0.17.5
