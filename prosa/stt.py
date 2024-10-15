@@ -15,7 +15,7 @@ from livekit.agents import stt, utils
 from livekit.agents.utils import AudioBuffer, merge_frames
 
 from .log import logger
-from .models import DeepgramLanguages, DeepgramModels
+from .models import ProsaLanguages, ProsaModels
 from .utils import BasicAudioEnergyFilter
 
 BASE_URL = "https://api.deepgram.com/v1/listen"
@@ -24,11 +24,11 @@ BASE_URL_WS = "wss://api.deepgram.com/v1/listen"
 
 @dataclass
 class STTOptions:
-    language: DeepgramLanguages | str | None
+    language: ProsaLanguages | str | None
     detect_language: bool
     interim_results: bool
     punctuate: bool
-    model: DeepgramModels
+    model: ProsaModels
     smart_format: bool
     no_delay: bool
     endpointing_ms: int
@@ -44,8 +44,8 @@ class STT(stt.STT):
     def __init__(
         self,
         *,
-        model: DeepgramModels = "nova-2-general",
-        language: DeepgramLanguages = "en-US",
+        model: ProsaModels = "stt-general",
+        language: ProsaLanguages = "id-ID",
         detect_language: bool = False,
         interim_results: bool = True,
         punctuate: bool = True,
@@ -117,7 +117,7 @@ class STT(stt.STT):
         return self._session
 
     async def recognize(
-        self, buffer: AudioBuffer, *, language: DeepgramLanguages | str | None = None
+        self, buffer: AudioBuffer, *, language: ProsaLanguages | str | None = None
     ) -> stt.SpeechEvent:
         config = self._sanitize_options(language=language)
 
@@ -156,7 +156,7 @@ class STT(stt.STT):
             )
 
     def stream(
-        self, *, language: DeepgramLanguages | str | None = None
+        self, *, language: ProsaLanguages | str | None = None
     ) -> "SpeechStream":
         config = self._sanitize_options(language=language)
         return SpeechStream(config, self._api_key, self._ensure_session())
