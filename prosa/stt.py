@@ -18,95 +18,75 @@ from .log import logger
 from .models import ProsaLanguages, ProsaModels
 from .utils import BasicAudioEnergyFilter
 
-BASE_URL = "https://api.deepgram.com/v1/listen"
-BASE_URL_WS = "wss://api.deepgram.com/v1/listen"
+BASE_URL = "https://api.prosa.ai/v2/speech/stt"
 
 
 @dataclass
 class STTOptions:
     language: ProsaLanguages | str | None
-    detect_language: bool
-    interim_results: bool
-    punctuate: bool
     model: ProsaModels
-    smart_format: bool
-    no_delay: bool
-    endpointing_ms: int
-    filler_words: bool
-    sample_rate: int
-    num_channels: int
-    keywords: list[Tuple[str, float]]
-    profanity_filter: bool
+    wait: bool
+    speaker_count: int
+    include_filler: bool
+    include_partial_results: bool
+    auto_punctuation: bool
+    enable_spoken_numerals: bool
+    enable_speech_insights: bool
+    enable_voice_insights: bool
     
-
-
 class STT(stt.STT):
     def __init__(
         self,
         *,
         model: ProsaModels = "stt-general",
         language: ProsaLanguages = "id-ID",
-        detect_language: bool = False,
-        interim_results: bool = True,
-        punctuate: bool = True,
-        smart_format: bool = True,
-        no_delay: bool = True,
-        endpointing_ms: int = 25,
-        filler_words: bool = False,
-        keywords: list[Tuple[str, float]] = [],
-        profanity_filter: bool = False,
+        wait: bool = False,
+        speaker_count: int = 1,
+        include_filler: bool = False,
+        include_partial_results: bool= False,
+        auto_punctuation: bool = False,
+        enable_spoken_numerals: bool = False,
+        enable_speech_insights: bool = False,
+        enable_voice_insights: bool = False,     
         api_key: str | None = None,
         http_session: aiohttp.ClientSession | None = None,
     ) -> None:
         """
-        Create a new instance of Deepgram STT.
+        Create a new instance of Prosa STT.
 
-        ``api_key`` must be set to your Deepgram API key, either using the argument or by setting
-        the ``DEEPGRAM_API_KEY`` environmental variable.
+        ``api_key`` must be set to your Prosa API key, either using the argument or by setting
+        the ``Prosa_STT_API_KEY`` environmental variable.
         """
 
         super().__init__(
             capabilities=stt.STTCapabilities(
-                streaming=True, interim_results=interim_results
+                streaming=True, interim_results=include_partial_results
             )
         )
 
-        api_key = api_key or os.environ.get("DEEPGRAM_API_KEY")
+        api_key = api_key or os.environ.get("Prosa_STT_API_KEY")
         if api_key is None:
-            raise ValueError("Deepgram API key is required")
+            raise ValueError("Prosa API key is required")
 
-        if language not in ("en-US", "en") and model in (
-            "nova-2-meeting",
-            "nova-2-phonecall",
-            "nova-2-finance",
-            "nova-2-conversationalai",
-            "nova-2-voicemail",
-            "nova-2-video",
-            "nova-2-medical",
-            "nova-2-drivethru",
-            "nova-2-automotive",
-        ):
+        if language not in ("id-ID", "id"):
             logger.warning(
-                f"{model} does not support language {language}, falling back to nova-2-general"
+                f"{model} does not support language {language}, falling back to stt-general"
             )
-            model = "nova-2-general"
+            model = "stt-general"
 
         self._api_key = api_key
 
         self._opts = STTOptions(
             language=language,
-            detect_language=detect_language,
-            interim_results=interim_results,
-            punctuate=punctuate,
             model=model,
-            smart_format=smart_format,
-            no_delay=no_delay,
-            endpointing_ms=endpointing_ms,
-            filler_words=filler_words,
-            sample_rate=48000,
-            num_channels=1,
-            keywords=keywords,
-            profanity_filter=profanity_filter,
+            wait=wait,
+            speaker_count=speaker_count,
+            include_filler=include_filler,
+            include_partial_results=include_partial_results,
+            auto_punctuation=auto_punctuation,
+            enable_spoken_numerals=enable_spoken_numerals,
+            enable_speech_insights=enable_speech_insights,
+            enable_voice_insights=enable_voice_insights,
         )
         self._session = http_session
 
@@ -444,5 +424,5 @@ def _to_deepgram_url(opts: dict, *, websocket: bool = False) -> str:
 
     # lowercase bools
     opts = {k: str(v).lower() if isinstance(v, bool) else v for k, v in opts.items()}
-    base_url = BASE_URL_WS if websocket else BASE_URL
+    base_url = BASE_URL
     return f"{base_url}?{urlencode(opts, doseq=True)}"
