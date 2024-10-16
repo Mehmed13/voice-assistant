@@ -4,7 +4,8 @@ from dotenv import load_dotenv
 from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli, llm
 from livekit.agents.voice_assistant import VoiceAssistant
 from livekit.plugins import openai, silero, deepgram, cartesia
-from api import AssistantFnc
+from prosa.stt import STT as ProsaSTT
+# from api import AssistantFnc
 
 load_dotenv()
 
@@ -18,15 +19,15 @@ async def entrypoint(ctx: JobContext):
         ),
     )
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
-    fnc_ctx = AssistantFnc()
+    # fnc_ctx = AssistantFnc()
 
     assitant = VoiceAssistant(
         vad=silero.VAD.load(),
-        stt=deepgram.STT(),
+        stt=ProsaSTT(),
         llm=openai.LLM.with_groq(),
         tts=cartesia.TTS(),
         chat_ctx=initial_ctx,
-        fnc_ctx=fnc_ctx,
+        # fnc_ctx=fnc_ctx,
     )
     assitant.start(ctx.room)
 

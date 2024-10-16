@@ -15,3 +15,6 @@ __pycache__/
 # Ignore IDE-specific files
 .vscode/
 .idea/
+
+# Ignore wav file
+*.wav
