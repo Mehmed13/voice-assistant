@@ -65,55 +65,13 @@ class TTS(tts.TTS):
 
         self._client = client or Prosa.TTS(self._api_key)
 
-
-    @staticmethod
-    def create_azure_client(
-        *,
-        model: TTSModels = "tts-1",
-        voice: TTSVoices = "alloy",
-        speed: float = 1.0,
-        azure_endpoint: str | None = None,
-        azure_deployment: str | None = None,
-        api_version: str | None = None,
-        api_key: str | None = None,
-        azure_ad_token: str | None = None,
-        azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
-        organization: str | None = None,
-        project: str | None = None,
-        base_url: str | None = None,
-    ) -> TTS:
-        """
-        This automatically infers the following arguments from their corresponding environment variables if they are not provided:
-        - `api_key` from `AZURE_OPENAI_API_KEY`
-        - `organization` from `OPENAI_ORG_ID`
-        - `project` from `OPENAI_PROJECT_ID`
-        - `azure_ad_token` from `AZURE_OPENAI_AD_TOKEN`
-        - `api_version` from `OPENAI_API_VERSION`
-        - `azure_endpoint` from `AZURE_OPENAI_ENDPOINT`
-        """
-
-        azure_client = openai.AsyncAzureOpenAI(
-            azure_endpoint=azure_endpoint,
-            azure_deployment=azure_deployment,
-            api_version=api_version,
-            api_key=api_key,
-            azure_ad_token=azure_ad_token,
-            azure_ad_token_provider=azure_ad_token_provider,
-            organization=organization,
-            project=project,
-            base_url=base_url,
-        )  # type: ignore
-
-        return TTS(model=model, voice=voice, speed=speed, client=azure_client)
-
     def synthesize(self, text: str) -> "ChunkedStream":
-        stream = self._client.audio.speech.with_streaming_response.create(
-            input=text,
+        stream = self._client.get_speech(
+            text=text,
+            audio_format=self._opts.audio_format,
             model=self._opts.model,
-            voice=self._opts.voice,
-            response_format="mp3",
-            speed=self._opts.speed,
-        )
+            wait=self._opts.wait,
+            )
 
         return ChunkedStream(stream, text, self._opts)
 
@@ -121,13 +79,11 @@ class TTS(tts.TTS):
 class ChunkedStream(tts.ChunkedStream):
     def __init__(
         self,
-        oai_stream: AsyncContextManager[openai.AsyncAPIResponse[bytes]],
         text: str,
         opts: _TTSOptions,
     ) -> None:
         super().__init__()
         self._opts, self._text = opts, text
-        self._oai_stream = oai_stream
 
     @utils.log_exceptions(logger=logger)
     async def _main_task(self):
