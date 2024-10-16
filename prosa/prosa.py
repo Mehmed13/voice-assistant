@@ -33,7 +33,6 @@ class Prosa:
 
         def create_transcription(self, filename: str,  model: str="stt-general", wait=True) -> dict:
             job = self._submit_stt_request(filename, model=model, wait=wait)
-            print("job:", job)
             if job["status"] == "complete":
                 return job["result"]
     class TTS:

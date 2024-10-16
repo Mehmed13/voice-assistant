@@ -16,7 +16,7 @@ from livekit.agents import stt, utils
 from livekit.agents.utils import AudioBuffer, merge_frames
 
 from .log import logger
-from .models import ProsaLanguages, ProsaModels
+from .models import ProsaLanguages, ProsaSTTModels
 from .utils import BasicAudioEnergyFilter
 from .prosa import Prosa
 
@@ -26,7 +26,7 @@ BASE_URL = "https://api.prosa.ai/v2/speech/stt"
 @dataclass
 class STTOptions:
     language: ProsaLanguages | str | None
-    model: ProsaModels
+    model: ProsaSTTModels
     wait: bool
     speaker_count: int
     include_filler: bool
@@ -40,7 +40,7 @@ class STT(stt.STT):
     def __init__(
         self,
         *,
-        model: ProsaModels = "stt-general",
+        model: ProsaSTTModels = "stt-general",
         language: ProsaLanguages = "id-ID",
         wait: bool = True,
         speaker_count: int = 1,
@@ -110,9 +110,6 @@ class STT(stt.STT):
         with open("prosa/output.wav", "wb") as wav_file:
             wav_file.write(bytes_data)
 
-        b64audio_data  = base64.b64encode(bytes_data).decode("utf-8")
-
-        print("masuk prosa line 111")
         transcription = self._client.create_transcription(
             filename="prosa/output.wav",
             model=self._opts.model,
@@ -124,8 +121,6 @@ class STT(stt.STT):
         except Exception as e:
             print("Error:",  e)
             transcription_text = None
-
-        print("masuk line 123 udah transcription:", transcription_text)
 
         return stt.SpeechEvent(
             type=stt.SpeechEventType.FINAL_TRANSCRIPT,

@@ -1,7 +1,11 @@
 from typing import Literal
 
-ProsaModels = Literal[
+ProsaSTTModels = Literal[
     "stt-general",
+]
+
+ProsaTTSModels = Literal[
+    "tts-dimas-formal",
 ]
 
 ProsaLanguages = Literal[
