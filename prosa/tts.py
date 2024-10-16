@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import AsyncContextManager
 
 from livekit.agents import tts, utils
 
@@ -10,7 +9,7 @@ from .log import logger
 from .models import ProsaTTSModels
 from .prosa import Prosa
 
-PROSA_TTS_SAMPLE_RATE = 24000
+PROSA_TTS_SAMPLE_RATE = 44100
 PROSA_TTS_CHANNELS = 1
 
 
@@ -27,7 +26,7 @@ class TTS(tts.TTS):
     def __init__(
         self,
         *,
-        model: ProsaTTSModels = "tts-1",
+        model: ProsaTTSModels = "tts-dimas-formal",
         wait: bool = True,
         pitch: float = 0,
         tempo: float = 1,
@@ -52,7 +51,7 @@ class TTS(tts.TTS):
 
         # throw an error on our end
         self._api_key = api_key or os.environ.get("PROSA_TTS_API_KEY")
-        if api_key is None:
+        if self._api_key is None:
             raise ValueError("Prosa TTS API key is required")
 
         self._opts = _TTSOptions(
@@ -66,12 +65,14 @@ class TTS(tts.TTS):
         self._client = client or Prosa.TTS(self._api_key)
 
     def synthesize(self, text: str) -> "ChunkedStream":
+        print("start synthesize sound...")
         b64audio_data = self._client.get_speech(
             text=text,
             audio_format=self._opts.audio_format,
             model=self._opts.model,
             wait=self._opts.wait,
             )
+        print("finish synthesize sound...")
 
         return ChunkedStream(b64audio_data, self._opts)
 

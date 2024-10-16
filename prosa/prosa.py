@@ -59,5 +59,9 @@ class Prosa:
         
         def get_speech(self, text: str, audio_format: str = "mp3", model: str="tts-dimas-formal", wait: bool=True) -> bytes:
             job = self._submit_tts_request(text, audio_format, model=model, wait=wait)
+            print(job)
             if job["status"] == "complete":
-                return base64.b64decode(job["result"]["data"])        
+                b64audio_data = base64.b64decode(job["result"]["data"])
+                with open("prosa/speech.wav", "wb") as f:
+                    f.write(b64audio_data)
+                return b64audio_data        

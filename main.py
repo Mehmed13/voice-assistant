@@ -5,6 +5,7 @@ from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli, llm
 from livekit.agents.voice_assistant import VoiceAssistant
 from livekit.plugins import openai, silero, deepgram, cartesia
 from prosa.stt import STT as ProsaSTT
+from prosa.tts import TTS as ProsaTTS
 # from api import AssistantFnc
 
 load_dotenv()
@@ -25,14 +26,14 @@ async def entrypoint(ctx: JobContext):
         vad=silero.VAD.load(),
         stt=ProsaSTT(),
         llm=openai.LLM.with_groq(),
-        tts=cartesia.TTS(),
+        tts=ProsaTTS(),
         chat_ctx=initial_ctx,
         # fnc_ctx=fnc_ctx,
     )
     assitant.start(ctx.room)
 
     await asyncio.sleep(1)
-    await assitant.say("Hey, how can I help you today!", allow_interruptions=True)
+    await assitant.say("Halo, Apa kabar", allow_interruptions=False)
 
 
 if __name__ == "__main__":

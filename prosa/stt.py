@@ -66,8 +66,8 @@ class STT(stt.STT):
             )
         )
 
-        api_key = api_key or os.environ.get("Prosa_STT_API_KEY")
-        if api_key is None:
+        self._api_key = api_key or os.environ.get("Prosa_STT_API_KEY")
+        if self._api_key is None:
             raise ValueError("Prosa API key is required")
 
         if language not in ("id-ID", "id"):
@@ -76,7 +76,6 @@ class STT(stt.STT):
             )
             model = "stt-general"
 
-        self._api_key = api_key or os.environ.get("PROSA_STT_API_KEY")
         self._opts = STTOptions(
             language=language,
             model=model,
@@ -110,11 +109,13 @@ class STT(stt.STT):
         with open("prosa/output.wav", "wb") as wav_file:
             wav_file.write(bytes_data)
 
+        print("start transcription...")
         transcription = self._client.create_transcription(
             filename="prosa/output.wav",
             model=self._opts.model,
             wait=self._opts.wait
         )
+        print("finish transcription...")
 
         try:
             transcription_text = transcription["data"][0]["transcript"]
