@@ -66,24 +66,24 @@ class TTS(tts.TTS):
         self._client = client or Prosa.TTS(self._api_key)
 
     def synthesize(self, text: str) -> "ChunkedStream":
-        stream = self._client.get_speech(
+        b64audio_data = self._client.get_speech(
             text=text,
             audio_format=self._opts.audio_format,
             model=self._opts.model,
             wait=self._opts.wait,
             )
 
-        return ChunkedStream(stream, text, self._opts)
+        return ChunkedStream(b64audio_data, self._opts)
 
 
 class ChunkedStream(tts.ChunkedStream):
     def __init__(
         self,
-        text: str,
+        audio_data: str,
         opts: _TTSOptions,
     ) -> None:
         super().__init__()
-        self._opts, self._text = opts, text
+        self._opts, self._audio_data = opts, audio_data
 
     @utils.log_exceptions(logger=logger)
     async def _main_task(self):
@@ -95,21 +95,17 @@ class ChunkedStream(tts.ChunkedStream):
             num_channels=PROSA_TTS_CHANNELS,
         )
 
-        async with self._oai_stream as stream:
-            async for data in stream.iter_bytes():
-                for frame in decoder.decode_chunk(data):
-                    for frame in audio_bstream.write(frame.data):
-                        self._event_ch.send_nowait(
-                            tts.SynthesizedAudio(
-                                request_id=request_id,
-                                segment_id=segment_id,
-                                frame=frame,
-                            )
+        for frame in decoder.decode_chunk(self._audio_data):
+                for frame in audio_bstream.write(frame.data):
+                    self._event_ch.send_nowait(
+                        tts.SynthesizedAudio(
+                            request_id=request_id, segment_id=segment_id, frame=frame
                         )
-
-            for frame in audio_bstream.flush():
-                self._event_ch.send_nowait(
-                    tts.SynthesizedAudio(
-                        request_id=request_id, segment_id=segment_id, frame=frame
                     )
+
+        for frame in audio_bstream.flush():
+            self._event_ch.send_nowait(
+                tts.SynthesizedAudio(
+                    request_id=request_id, segment_id=segment_id, frame=frame
                 )
+            )
