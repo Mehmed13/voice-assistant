@@ -1,23 +1,15 @@
 from __future__ import annotations
 
-import asyncio
 import dataclasses
 import io
-import base64
-import json
 import os
 import wave
 from dataclasses import dataclass
-from typing import List, Tuple
-from urllib.parse import urlencode
-
-import aiohttp
-from livekit.agents import stt, utils
+from livekit.agents import stt
 from livekit.agents.utils import AudioBuffer, merge_frames
 
 from .log import logger
 from .models import ProsaLanguages, ProsaSTTModels
-from .utils import BasicAudioEnergyFilter
 from .prosa import Prosa
 
 BASE_URL = "https://api.prosa.ai/v2/speech/stt"
@@ -94,7 +86,6 @@ class STT(stt.STT):
     async def recognize(
         self, buffer: AudioBuffer, *, language: ProsaLanguages | str | None = None
     ) -> stt.SpeechEvent:
-        config = self._sanitize_options(language=language)
 
         buffer = merge_frames(buffer)
         io_buffer = io.BytesIO()

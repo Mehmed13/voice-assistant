@@ -27,13 +27,14 @@ async def entrypoint(ctx: JobContext):
         stt=ProsaSTT(),
         llm=openai.LLM.with_groq(),
         tts=ProsaTTS(),
+        # tts = cartesia.TTS(),
         chat_ctx=initial_ctx,
         # fnc_ctx=fnc_ctx,
     )
     assitant.start(ctx.room)
 
     await asyncio.sleep(1)
-    await assitant.say("Halo, Apa kabar", allow_interruptions=False)
+    await assitant.say("Halo, Ada yang bisa saya bantu?", allow_interruptions=False)
 
 
 if __name__ == "__main__":

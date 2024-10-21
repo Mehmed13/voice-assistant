@@ -1,7 +1,7 @@
 import base64
 import requests
-
-
+# from pydub import AudioSegment
+# import io
 
 class Prosa:
     _STT_URL = "https://api.prosa.ai/v2/speech/stt"
@@ -59,9 +59,13 @@ class Prosa:
         
         def get_speech(self, text: str, audio_format: str = "mp3", model: str="tts-dimas-formal", wait: bool=True) -> bytes:
             job = self._submit_tts_request(text, audio_format, model=model, wait=wait)
-            print(job)
+            # print(job)
             if job["status"] == "complete":
                 b64audio_data = base64.b64decode(job["result"]["data"])
-                with open("prosa/speech.wav", "wb") as f:
-                    f.write(b64audio_data)
+                # audio_segment = AudioSegment.from_file(io.BytesIO(b64audio_data), format="mp3")
+                # audio_segment.export("prosa/speech.mp3", format="mp3")
+                # with open("prosa/speech.mp3", "wb") as f:
+                #     f.write(b64audio_data)
+                # print("type dari audio data", type(b64audio_data))
+                # print("audio data:", b64audio_data)
                 return b64audio_data        

@@ -8,6 +8,10 @@ from livekit.agents import tts, utils
 from .log import logger
 from .models import ProsaTTSModels
 from .prosa import Prosa
+from pydub import AudioSegment
+import io
+
+from livekit import rtc
 
 PROSA_TTS_SAMPLE_RATE = 44100
 PROSA_TTS_CHANNELS = 1
@@ -65,29 +69,22 @@ class TTS(tts.TTS):
         self._client = client or Prosa.TTS(self._api_key)
 
     def synthesize(self, text: str) -> "ChunkedStream":
-        print("start synthesize sound...")
-        b64audio_data = self._client.get_speech(
-            text=text,
-            audio_format=self._opts.audio_format,
-            model=self._opts.model,
-            wait=self._opts.wait,
-            )
-        print("finish synthesize sound...")
-
-        return ChunkedStream(b64audio_data, self._opts)
+        return ChunkedStream(self._client, text, self._opts)
 
 
 class ChunkedStream(tts.ChunkedStream):
     def __init__(
         self,
-        audio_data: str,
+        client: Prosa.TTS,
+        text: str,
         opts: _TTSOptions,
     ) -> None:
         super().__init__()
-        self._opts, self._audio_data = opts, audio_data
+        self._client, self._opts, self._text = client, opts, text 
 
     @utils.log_exceptions(logger=logger)
     async def _main_task(self):
+        # Setup
         request_id = utils.shortuuid()
         segment_id = utils.shortuuid()
         decoder = utils.codecs.Mp3StreamDecoder()
@@ -96,7 +93,21 @@ class ChunkedStream(tts.ChunkedStream):
             num_channels=PROSA_TTS_CHANNELS,
         )
 
+        # Synthesize sound
+        print("start synthesize sound...")
+        b64audio_data = self._client.get_speech(
+            text=self._text,
+            audio_format=self._opts.audio_format,
+            model=self._opts.model,
+            wait=self._opts.wait,
+            )
+        print("finish synthesize sound...")
+
+        self._audio_data = b64audio_data
+
+        # Sendt sound to stream
         for frame in decoder.decode_chunk(self._audio_data):
+                # print(frame)
                 for frame in audio_bstream.write(frame.data):
                     self._event_ch.send_nowait(
                         tts.SynthesizedAudio(

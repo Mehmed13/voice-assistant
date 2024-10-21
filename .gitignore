@@ -16,5 +16,6 @@ __pycache__/
 .vscode/
 .idea/
 
-# Ignore wav file
+# Ignore audio file
 *.wav
+*.mp3
