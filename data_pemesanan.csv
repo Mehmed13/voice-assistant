@@ -1,0 +1,6 @@
+ID Pesanan,Status Pemesanan,Tanggal Pemesanan,Jumlah Item,Metode Pembayaran,Estimasi Pengiriman,Riwayat Pesanan,ID Pelanggan
+1,diproses,2024-10-15,2,kartu kredit,2024-10-20,"Serum, Pelembab",1
+2,dikirim,2024-10-10,1,transfer bank,2024-10-12,Lipstik,2
+3,selesai,2024-10-08,3,ewallet,2024-10-09,"Maskara, Eyeliner",3
+4,dikirim,2024-10-07,2,cod,2024-10-10,"Foundation, Pelembab",4
+5,selesai,2024-10-05,1,kartu kredit,2024-10-06,Serum,5
