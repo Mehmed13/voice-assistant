@@ -32,33 +32,38 @@ class AssistantFunc(llm.FunctionContext):
         self._data = load_data(file_path)
         print("data", self._data)
 
-    @llm.ai_callable(description="dapatkan produk pesanan berdasarkan status pesanan")
-    def get_order_product_by_status(self, status: Annotated[str, llm.TypeInfo(description="order status")]):
-        logger.info("get order product - status %s", status)
+    @llm.ai_callable(description="dapatkan id pesanan yang terdapat pemesanan produk tertentu")
+    def get_order_by_product(self, product: Annotated[str, llm.TypeInfo(description="id pengguna")]):
+        logger.info("get order id - product %s", product)
+        orders = self._data[self._data["Riwayat Pesanan"].str.contains(product.title(), na=False)]["ID Pesanan"]
+        logger.info(f"orders {orders.to_list()}")
+        return f"Id pesanan yang memiliki produk {product} adalah {orders.to_list()} dari {len(orders)} pesanan"
 
-        products = self._data[self._data["Status Pemesanan"]==status.lower()]["Riwayat Pesanan"]
-        logger.info(f"products {products.to_list()}")
-        return f"Produk-produk dengan status pesanan {status} adalah {products.to_list()} dari {len(products)} pesanan"
+    @llm.ai_callable(description="dapatkan id pesanan dengan status pesanan tertentu")
+    def get_order_by_status(self, status: Annotated[str, llm.TypeInfo(description="order status")]):
+        logger.info("get order id - status %s", status)
+        orders = self._data[self._data["Status Pemesanan"]==status.lower()]["ID Pesanan"]
+        logger.info(f"orders {orders.to_list()}")
+        return f"Id pesanan yang memiliki status pesanan {status} adalah {orders.to_list()} dari {len(orders)} pesanan"
     
-    @llm.ai_callable(description="dapatkan produk pesanan berdasarkan metode pembayaran")
-    def get_order_product_by_payment_method(self, payment_method: Annotated[str, llm.TypeInfo(description="metode pembayaran")]):
-        logger.info("get order product - payment_method %s", payment_method)
-
-        products = self._data[self._data["Metode Pembayaran"]==payment_method.lower()]["Riwayat Pesanan"]
-        logger.info(f"products {products.to_list()}")
-        return f"Produk-produk dengan metode pembayaran {payment_method} adalah {products.to_list()} dari {len(products)} pesanan"
+    @llm.ai_callable(description="dapatkan id pesanan dengan metode pembayaran tertentu")
+    def get_order_by_payment_method(self, payment_method: Annotated[str, llm.TypeInfo(description="metode pembayaran")]):
+        logger.info("get order id - payment_method %s", payment_method)
+        orders = self._data[self._data["Metode Pembayaran"]==payment_method.lower()]["ID Pesanan"]
+        logger.info(f"orders {orders.to_list()}")
+        return f"Id pesanan yang memiliki metode pembayaran {payment_method} adalah {orders.to_list()} dari {len(orders)} pesanan"
     
-    @llm.ai_callable(description="dapatkan produk pesanan berdasarkan id pengguna")
-    def get_order_product_by_user_id(self, user_id: Annotated[int, llm.TypeInfo(description="id pengguna")]):
-        logger.info("get order product - user_id %d", user_id)
-        print(f"user id type", type(user_id))
-        products = self._data[self._data["ID Pelanggan"]== int(user_id)]["Riwayat Pesanan"]
-        logger.info(f"products {products.to_list()}")
-        return f"Produk-produk dengan ID Pengguna {user_id} adalah {products.to_list()} dari {len(products)} pesanan"
+    @llm.ai_callable(description="dapatkan id pesanan dengan id pengguna tertentu")
+    def get_order_by_user_id(self, user_id: Annotated[int, llm.TypeInfo(description="id pengguna")]):
+        logger.info("get order id - user_id %d", user_id)
+        orders = self._data[self._data["ID Pelanggan"]== int(user_id)]["ID Pesanan"]
+        logger.info(f"orders {orders.to_list()}")
+        return f"Id pesanan yang memiliki ID Pengguna {user_id} adalah {orders.to_list()} dari {len(orders)} pesanan"
+    
         
     @llm.ai_callable(description="dapatkan data pesanan berdasarkan ID pesanan")
     def get_order_data_by_id(self, order_id: Annotated[int, llm.TypeInfo(description="id pesanan")]):
-        logger.info("get order product - order_id %d", order_id)
+        logger.info("get order data - order_id %d", order_id)
 
         order = self._data[self._data["ID Pesanan"]==int(order_id)]
         logger.info(f"order {order}")
